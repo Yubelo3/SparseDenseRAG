@@ -1,2 +1,5 @@
 *.out
 __pycache__
+data
+usage.md
+testing.py

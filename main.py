@@ -10,6 +10,7 @@ encoders = ComprehensiveEncoder()
 knowledge = sparse_net_retriever.query(question)
 knowledge_embedding = encoders.encode_paragraphs(knowledge)
 question_embedding = encoders.encode_questions([question])
+print(knowledge_embedding)
 
 dis = torch.norm(question_embedding-knowledge_embedding, p=2, dim=-1)
 _, nearest_knowledge = torch.topk(dis, k=10, largest=False, sorted=True)
