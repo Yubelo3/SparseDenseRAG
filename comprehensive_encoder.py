@@ -2,19 +2,19 @@ from typing import List
 import torch
 from transformers import DPRContextEncoder, DPRContextEncoderTokenizer
 from transformers import DPRQuestionEncoder, DPRQuestionEncoderTokenizer
-
+from transformers import RagTokenizer, RagRetriever
 
 class ComprehensiveEncoder:
     def __init__(self,device="cuda"):
         self.device=device
         self.context_encoder = DPRContextEncoder.from_pretrained(
-            "facebook/dpr-ctx_encoder-multiset-base").to(device)
+            "facebook/dpr-ctx_encoder-single-nq-base").to(device)
         self.context_tokenizer = DPRContextEncoderTokenizer.from_pretrained(
-            "facebook/dpr-ctx_encoder-multiset-base")
+            "facebook/dpr-ctx_encoder-single-nq-base")
         self.question_encoder = DPRQuestionEncoder.from_pretrained(
-            "facebook/dpr-question_encoder-multiset-base").to(device)
+            "facebook/dpr-question_encoder-single-nq-base").to(device)
         self.question_tokenizer = DPRQuestionEncoderTokenizer.from_pretrained(
-            "facebook/dpr-question_encoder-multiset-base")
+            "facebook/dpr-question_encoder-single-nq-base")
 
     def encode(self, inputs, tokenizer, encoder):
         results = []

@@ -14,3 +14,4 @@
 #SBATCH --partition=normal
 
 python train_generator.py
+

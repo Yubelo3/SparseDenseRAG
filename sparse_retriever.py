@@ -25,7 +25,9 @@ class SparseRetriever:
                     text = p.get_text()
                     text = re.sub(r'\s+', ' ', text).strip()
                     if text and len(text) > 20:
-                        results.append(text)
+                        words=text.split(" ")
+                        for i in range(0,len(words),100):
+                            results.append(" ".join(words[i:min(i+100,len(words))]))
             except:
                 continue
         return results

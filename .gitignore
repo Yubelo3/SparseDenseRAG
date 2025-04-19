@@ -3,3 +3,5 @@ __pycache__
 data
 usage.md
 testing.py
+ckpt
+logs
