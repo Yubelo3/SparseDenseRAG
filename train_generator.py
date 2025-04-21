@@ -4,13 +4,18 @@ from tqdm import tqdm
 from logger import TBWriter
 from torch.utils.data import DataLoader
 import torch
+import re
+from typing import List
 
 DEVICE = "cuda"
-N_EPOCH = 10
+N_EPOCH = 200
 BATCH_SIZE = 192
-LR = 1e-7
-SAVE_EVERY = 1
+LR = 5e-7
+SAVE_EVERY = 8
 N_DOCS=1
+
+WEIGHTED_CONTEXT=True
+TASK="train_generator_weighted"
 
 
 def main():
@@ -24,12 +29,22 @@ def main():
                            collate_fn=valset.collate_fn)
     optimizer = torch.optim.Adam(
         generator.parameters(), lr=LR, betas=(0.9, 0.999),weight_decay=0.01)
-    writer = TBWriter("train_generator")
+    writer = TBWriter(TASK)
     bar = tqdm(range(1, N_EPOCH+1))
     for epoch in bar:
         train_epoch(generator, trainloader, optimizer, writer, epoch, bar)
         val_epoch(generator, valloader, writer, epoch)
 
+
+def clean_text(text:str):
+    step1=re.sub(r'[^0-9a-z]'," ",text.lower())
+    return re.sub(r'\s+'," ",step1.strip())
+
+def answer_words_in_context_words(answer_words:List[str],context_words:str):
+    for a in answer_words:
+        if a in context_words:
+            return True
+    return False
 
 def train_epoch(
     generator:RAGGenerator,
@@ -43,7 +58,18 @@ def train_epoch(
     batches, sum_loss = 0, 0.0
     for x in trainloader:
         optimizer.zero_grad()
-        loss = generator.get_loss(x["question"], x["context"], x["answer"])
+        loss = generator.get_loss(x["question"], x["context"], x["answer"],reduction=not WEIGHTED_CONTEXT)
+        if WEIGHTED_CONTEXT:
+            weight=[]
+            for i in range(len(x["question"])):
+                answer_words=clean_text(x["answer"][i]).split(" ")
+                w=0.2
+                for c in x["context"][i]:
+                    if answer_words_in_context_words(answer_words,clean_text(c).split(" ")):
+                        w=1.0
+                        break
+                weight.append(w)
+            loss=(loss*torch.Tensor(weight).to(DEVICE)).sum()/BATCH_SIZE
         sum_loss += loss.item()
         progress_bar.set_description(f"step loss: {loss.item():.4f}")
         writer.add_scalar("step loss", loss.item())
@@ -66,7 +92,7 @@ def val_epoch(
     batches, sum_loss = 0, 0.0
     for x in valloader:
         with torch.no_grad():
-            loss = generator.get_loss(x["question"], x["context"], x["answer"])
+            loss = generator.get_loss(x["question"], x["context"], x["answer"], reduction=True)
         sum_loss += loss.item()
         batches += 1
     writer.add_scalar("val loss", sum_loss/batches, current_epoch-1)
