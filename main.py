@@ -52,7 +52,6 @@ def main():
                     print(f"context {i}-{j}: {cc}")
                 print(f"answer {i}: {r}")
                 print(f"correct answer {i}: {a}")
-            exit()
 
     
 
