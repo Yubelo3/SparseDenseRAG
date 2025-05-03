@@ -4,9 +4,32 @@ from tqdm import tqdm
 from logger import TBWriter
 from torch.utils.data import DataLoader
 import torch
+from typing import List
+from comprehensive_encoder import ComprehensiveEncoder
 
 DEVICE = "cuda"
-N_DOCS=2
+N_DOCS=4
+
+def generate(
+    question:str,
+    passages:List[str],
+    encoders:ComprehensiveEncoder,
+    generator:RAGGenerator,
+):
+    chunked_passages=[]
+    for p in passages:
+        words=p.split(" ")
+        for k in range(0,len(words),50):
+            chunked_passages.append(" ".join(words[k:min(k+50,len(words))]))
+    question_embeddimg=encoders.encode_questions([question])  # [1 x emb_dim]
+    context_embedding=encoders.encode_paragraphs([chunked_passages])  # [N x emb_dim]
+    relevance=(question_embeddimg*context_embedding).sum(dim=-1)  # [N]
+    _,relevant_indices=torch.topk(relevance,k=4)
+    relevant_indices=relevant_indices.cpu().tolist()
+    context= [chunked_passages[i] for i in relevant_indices]
+    results=generator.rag_injected_generate([question],[context])
+    results=generator.decode_answers(results)
+    return results[0]
 
 
 def main():

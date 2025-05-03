@@ -4,4 +4,5 @@ data
 usage.md
 testing.py
 ckpt
-logs
+!data/NQ-open.efficientqa.test.1.1.jsonl
+!data/NQ-open.train.jsonl

@@ -34,7 +34,7 @@ class NQOpenDataset(Dataset):
             # "doc_score": torch.linspace(1.0,0.0,self.n_docs)*0.5+0.3
         }
         if not self.train:
-            ret["answer"] = self.dataset["answer"][index+self.index_start][0]
+            ret["answer"] = self.dataset["answer"][index+self.index_start]
         return ret
 
     def collate_fn(self, batch):
