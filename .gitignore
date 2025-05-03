@@ -1,6 +1,6 @@
 *.out
 __pycache__
-data
+data/*
 usage.md
 testing.py
 ckpt
